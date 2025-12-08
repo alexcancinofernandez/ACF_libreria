@@ -1,0 +1,124 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}Mi Carrito de Compras - Librería Cancino{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Mi Carrito de Compras</h2>
+
+<div id="carrito-container">
+    {% if items %}
+        <div class="row">
+            <!-- Listado de items -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        {% for item in items %}
+                            <div class="row mb-3 align-items-center item-carrito" data-item-id="{{ item.id }}">
+                                <div class="col-md-2">
+                                    <img src="{{ item.libro.portada.url }}" class="img-fluid rounded" alt="{{ item.libro.titulo }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <h5>{{ item.libro.titulo }}</h5>
+                                    <p class="text-muted">{{ item.libro.autor }}</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="input-group">
+                                        <button class="btn btn-outline-secondary btn-sm btn-actualizar-cantidad" data-action="decrement">-</button>
+                                        <input type="text" class="form-control text-center" value="{{ item.cantidad }}" readonly>
+                                        <button class="btn btn-outline-secondary btn-sm btn-actualizar-cantidad" data-action="increment">+</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <span class="fw-bold subtotal-item">${{ item.subtotal|floatformat:2 }}</span>
+                                </div>
+                                <div class="col-md-1 text-end">
+                                    <button class="btn btn-sm btn-danger btn-actualizar-cantidad" data-action="remove"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            {% if not forloop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen del pedido -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Resumen del Pedido</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Subtotal
+                                <span id="subtotal-carrito">${{ subtotal|floatformat:2 }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Impuestos (16%)
+                                <span id="impuestos-carrito">${{ impuestos|floatformat:2 }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
+                                Total
+                                <span id="total-carrito">${{ total|floatformat:2 }}</span>
+                            </li>
+                        </ul>
+                        <div class="d-grid mt-3">
+                            <a href="{% url 'app_tienda:checkout' %}" class="btn btn-primary">Proceder al Pago</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center">
+            <p class="fs-4">Tu carrito de compras está vacío.</p>
+            <a href="{% url 'app_tienda:catalogo' %}" class="btn btn-primary">Explorar libros</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const catalogoUrl = "{% url 'app_tienda:catalogo' %}";
+
+    $('.btn-actualizar-cantidad').click(function() {
+        const itemId = $(this).closest('.item-carrito').data('item-id');
+        const action = $(this).data('action');
+        
+        $.ajax({
+            url: "{% url 'app_tienda:actualizar_carrito' %}",
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                'item_id': itemId,
+                'action': action
+            }),
+            success: function(data) {
+                if (data.success) {
+                    if (data.removed) {
+                        $(`.item-carrito[data-item-id="${itemId}"]`).remove();
+                    } else {
+                        const itemRow = $(`.item-carrito[data-item-id="${itemId}"]`);
+                        itemRow.find('input').val(data.cantidad);
+                        itemRow.find('.subtotal-item').text('$' + data.subtotal_item.toFixed(2));
+                    }
+                    
+                    $('#subtotal-carrito').text('$' + data.subtotal.toFixed(2));
+                    $('#impuestos-carrito').text('$' + data.impuestos.toFixed(2));
+                    $('#total-carrito').text('$' + data.total.toFixed(2));
+                    
+                    if (data.total === 0) {
+                        const emptyCartHtml = `<div class="text-center"><p class="fs-4">Tu carrito de compras está vacío.</p><a href="${catalogoUrl}" class="btn btn-primary">Explorar libros</a></div>`;
+                        $('#carrito-container').html(emptyCartHtml);
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

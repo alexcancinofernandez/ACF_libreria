@@ -1,0 +1,26 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}Confirmación de Pedido - Librería Cancino{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title text-success"><i class="fas fa-check-circle me-2"></i>¡Gracias por tu compra!</h2>
+                    <p class="lead">Tu pedido ha sido procesado exitosamente.</p>
+                    <hr>
+                    <p><strong>Número de Pedido:</strong> {{ pedido.numero_pedido }}</p>
+                    <p>Recibirás un correo electrónico con los detalles de tu pedido y los enlaces para descargar tus libros. También puedes acceder a tus descargas desde tu perfil.</p>
+                    
+                    <div class="my-4">
+                        <a href="{% url 'app_tienda:mis_descargas' %}" class="btn btn-primary">Ir a Mis Descargas</a>
+                        <a href="{% url 'app_tienda:catalogo' %}" class="btn btn-outline-secondary">Seguir Comprando</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

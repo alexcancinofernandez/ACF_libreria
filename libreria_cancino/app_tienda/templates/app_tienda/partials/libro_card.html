@@ -1,0 +1,31 @@
+<div class="col">
+    <div class="card h-100 shadow-sm book-card">
+        {% if libro.en_oferta %}
+            <span class="badge bg-danger position-absolute top-0 start-0 m-2">Oferta</span>
+        {% endif %}
+        <a href="{{ libro.get_absolute_url }}">
+            {% if libro.portada %}
+                <img src="{{ libro.portada.url }}" class="card-img-top" alt="{{ libro.titulo }}">
+            {% else %}
+                <img src="https://via.placeholder.com/300x450.png?text={{ libro.titulo|truncatechars:20 }}" class="card-img-top" alt="Portada no disponible">
+            {% endif %}
+        </a>
+        <div class="card-body d-flex flex-column">
+            <h5 class="card-title fs-6">
+                <a href="{{ libro.get_absolute_url }}" class="text-decoration-none text-dark stretched-link">{{ libro.titulo }}</a>
+            </h5>
+            <p class="card-text text-muted small mt-auto">{{ libro.autor }}</p>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <p class="card-text fw-bold fs-5 mb-0">${{ libro.precio_actual }}</p>
+                {% if libro.precio_anterior and libro.precio_anterior > libro.precio_actual %}
+                    <small class="text-danger text-decoration-line-through">${{ libro.precio_anterior }}</small>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-footer p-2">
+             <a href="{% url 'app_tienda:agregar_al_carrito' libro.id %}" class="btn btn-sm btn-primary w-100">
+                <i class="bi bi-cart-plus-fill"></i> Agregar al carrito
+             </a>
+        </div>
+    </div>
+</div>

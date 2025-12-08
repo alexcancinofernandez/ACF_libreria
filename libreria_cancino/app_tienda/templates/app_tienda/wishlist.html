@@ -1,0 +1,102 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}Mi Wishlist - Librería Cancino{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Menú lateral -->
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="{% url 'app_tienda:perfil' %}" class="list-group-item list-group-item-action">Mi Perfil</a>
+            <a href="{% url 'app_tienda:mis_pedidos' %}" class="list-group-item list-group-item-action">Mis Pedidos</a>
+            <a href="{% url 'app_tienda:mis_descargas' %}" class="list-group-item list-group-item-action">Mis Descargas</a>
+            <a href="{% url 'app_tienda:wishlist' %}" class="list-group-item list-group-item-action active">Wishlist</a>
+            <a href="{% url 'app_tienda:logout' %}" class="list-group-item list-group-item-action text-danger">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="col-md-9">
+        <h2>Mi Wishlist</h2>
+        <p>Los libros que te gustaría comprar más adelante.</p>
+
+        {% if items %}
+            <div class="row">
+                {% for item in items %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100 item-wishlist" data-item-id="{{ item.id }}">
+                             <img src="{{ item.libro.portada.url }}" class="card-img-top" alt="{{ item.libro.titulo }}" style="height: 200px; object-fit: cover;">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ item.libro.titulo }}</h5>
+                                <p class="card-text text-muted">{{ item.libro.autor }}</p>
+                                <p class="card-text fw-bold fs-5">${{ item.libro.precio_descuento|default:item.libro.precio|floatformat:2 }}</p>
+                                <div class="mt-auto">
+                                    <button class="btn btn-primary w-100 mb-2 btn-mover-al-carrito">Mover al Carrito</button>
+                                    <button class="btn btn-outline-danger w-100 btn-remover-wishlist">Eliminar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                Tu wishlist está vacía. Empieza a añadir libros que te interesen desde el <a href="{% url 'app_tienda:catalogo' %}" class="alert-link">catálogo</a>.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Mover al carrito
+    $('.btn-mover-al-carrito').click(function() {
+        const itemId = $(this).closest('.item-wishlist').data('item-id');
+        
+        $.ajax({
+            url: "{% url 'app_tienda:mover_wishlist_a_carrito' %}",
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({ 'item_id': itemId }),
+            success: function(data) {
+                if (data.success) {
+                    // Eliminar visualmente el item de la wishlist
+                    $(`.item-wishlist[data-item-id="${itemId}"]`).closest('.col-md-4').remove();
+                    // Opcional: mostrar notificación de éxito
+                    // alert('¡Libro movido al carrito!');
+                } else {
+                    alert(data.error || 'Ocurrió un error.');
+                }
+            }
+        });
+    });
+
+    // Remover de la wishlist
+    $('.btn-remover-wishlist').click(function() {
+        const itemId = $(this).closest('.item-wishlist').data('item-id');
+        
+        $.ajax({
+            url: "{% url 'app_tienda:remover_de_wishlist' %}",
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({ 'item_id': itemId }),
+            success: function(data) {
+                if (data.success) {
+                     $(`.item-wishlist[data-item-id="${itemId}"]`).closest('.col-md-4').remove();
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}{{ libro.titulo }} - Librería Cancino{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Portada del Libro -->
+    <div class="col-md-4">
+        <img src="{{ libro.portada.url }}" class="img-fluid rounded" alt="{{ libro.titulo }}">
+    </div>
+
+    <!-- Detalles del Libro -->
+    <div class="col-md-8">
+        <h1>{{ libro.titulo }}</h1>
+        <p class="lead">por {{ libro.autor }}</p>
+        <p class="text-muted">Categoría: <a href="{% url 'app_tienda:catalogo' %}?categoria={{ libro.categoria.id }}">{{ libro.categoria.nombre }}</a></p>
+        
+        <div class="mb-3">
+            {% if libro.en_oferta and libro.precio_descuento %}
+                <span class="h3 text-danger">${{ libro.precio_descuento|floatformat:2 }}</span>
+                <span class="text-muted text-decoration-line-through ms-2">${{ libro.precio|floatformat:2 }}</span>
+                <span class="badge bg-danger ms-2">{{ libro.porcentaje_descuento }}% OFF</span>
+            {% else %}
+                <span class="h3">${{ libro.precio|floatformat:2 }}</span>
+            {% endif %}
+        </div>
+
+        <p>{{ libro.descripcion_corta }}</p>
+
+        <!-- Acciones -->
+        <div class="d-grid gap-2 d-md-block">
+             {% if ya_comprado %}
+                 <a href="{% url 'app_tienda:mis_descargas' %}" class="btn btn-success">
+                    <i class="fas fa-download me-2"></i>Ya lo compraste, ver en mis descargas
+                </a>
+             {% else %}
+                <a href="{% url 'app_tienda:agregar_al_carrito' libro.id %}" class="btn btn-primary">
+                    <i class="fas fa-shopping-cart me-2"></i>Agregar al Carrito
+                </a>
+            {% endif %}
+            <a href="{% url 'app_tienda:agregar_wishlist' libro.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-heart me-2"></i>Agregar a Wishlist
+            </a>
+        </div>
+
+        <hr>
+
+        <!-- Información Adicional -->
+        <h4>Detalles del producto</h4>
+        <ul class="list-unstyled">
+            <li><strong>Páginas:</strong> {{ libro.paginas|default:"No especificado" }}</li>
+            <li><strong>Formato:</strong> {{ libro.get_formato_display }}</li>
+            <li><strong>ISBN:</strong> {{ libro.isbn|default:"No especificado" }}</li>
+            <li><strong>Tamaño:</strong> {{ libro.tamanio_archivo }}</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Descripción Completa y Reseñas -->
+<div class="mt-5">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="descripcion-tab" data-bs-toggle="tab" data-bs-target="#descripcion" type="button" role="tab" aria-controls="descripcion" aria-selected="true">Descripción Completa</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="resenas-tab" data-bs-toggle="tab" data-bs-target="#resenas" type="button" role="tab" aria-controls="resenas" aria-selected="false">Reseñas ({{ libro.resenas.count }})</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active p-3" id="descripcion" role="tabpanel" aria-labelledby="descripcion-tab">
+            {{ libro.descripcion|linebreaks }}
+        </div>
+        <div class="tab-pane fade p-3" id="resenas" role="tabpanel" aria-labelledby="resenas-tab">
+            <!-- Formulario para nueva reseña -->
+            <!-- Listado de reseñas existentes -->
+        </div>
+    </div>
+</div>
+
+<!-- Libros Relacionados -->
+<div class="mt-5">
+    <h3 class="mb-4">También te podría interesar</h3>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for libro_relacionado in libros_relacionados %}
+             {% include 'app_tienda/partials/libro_card.html' with libro=libro_relacionado %}
+        {% empty %}
+            <p>No hay libros relacionados.</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'app_tienda/admin/admin_base.html' %}
+
+{% block title %}Gestionar Pedidos - Administración{% endblock %}
+
+{% block admin_content %}
+<h3><i class="fas fa-box me-2"></i>Gestionar Pedidos</h3>
+<p>Busca, filtra y gestiona todos los pedidos de la tienda.</p>
+
+<div class="card">
+    <div class="card-body">
+        <!-- Formulario de Búsqueda y Filtro -->
+        <form method="get" class="row g-3 mb-4 align-items-center">
+            <div class="col-md-4">
+                <input type="text" name="q" class="form-control" placeholder="Buscar por # pedido, cliente..." value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-3">
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    {% for valor, nombre in estados %}
+                        <option value="{{ valor }}" {% if request.GET.estado == valor|stringformat:"s" %}selected{% endif %}>{{ nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                <a href="{% url 'app_tienda:admin_pedidos' %}" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+        </form>
+
+        <!-- Tabla de Pedidos -->
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th># Pedido</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                    <tr>
+                        <td>{{ pedido.numero_pedido }}</td>
+                        <td>{{ pedido.usuario.get_full_name|default:pedido.usuario.username }}</td>
+                        <td>{{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>${{ pedido.total|floatformat:2 }}</td>
+                        <td><span class="badge bg-info">{{ pedido.get_estado_display }}</span></td>
+                        <td><a href="{% url 'app_tienda:admin_detalle_pedido' pedido.numero_pedido %}" class="btn btn-sm btn-outline-primary">Ver Detalles</a></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No se encontraron pedidos con los criterios seleccionados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Paginación -->
+        {% include 'app_tienda/partials/paginacion.html' %}
+    </div>
+</div>
+{% endblock %}

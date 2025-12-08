@@ -1,0 +1,81 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}Mi Perfil - Librería Cancino{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Menú lateral -->
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="{% url 'app_tienda:perfil' %}" class="list-group-item list-group-item-action active">Mi Perfil</a>
+            <a href="{% url 'app_tienda:mis_pedidos' %}" class="list-group-item list-group-item-action">Mis Pedidos</a>
+            <a href="{% url 'app_tienda:mis_descargas' %}" class="list-group-item list-group-item-action">Mis Descargas</a>
+            <a href="{% url 'app_tienda:wishlist' %}" class="list-group-item list-group-item-action">Wishlist</a>
+            <a href="{% url 'app_tienda:logout' %}" class="list-group-item list-group-item-action text-danger">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="col-md-9">
+        <h2>Mi Perfil</h2>
+        <p>Actualiza tu información personal y gestiona tu cuenta.</p>
+
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Información de la Cuenta</h5>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombre de usuario</label>
+                            {{ form.username }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                             <label class="form-label">Correo electrónico</label>
+                            {{ form.email }}
+                        </div>
+                         <div class="col-md-6 mb-3">
+                             <label class="form-label">Teléfono</label>
+                            {{ form.telefono }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Pedidos Recientes</h5>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th># Pedido</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pedido in pedidos %}
+                            <tr>
+                                <td>{{ pedido.numero_pedido }}</td>
+                                <td>{{ pedido.fecha_creacion|date:"d/m/Y" }}</td>
+                                <td>${{ pedido.total|floatformat:2 }}</td>
+                                <td><span class="badge bg-info">{{ pedido.get_estado_display }}</span></td>
+                                <td><a href="{% url 'app_tienda:detalle_pedido' pedido.numero_pedido %}" class="btn btn-sm btn-outline-primary">Ver</a></td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No has realizado ningún pedido.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

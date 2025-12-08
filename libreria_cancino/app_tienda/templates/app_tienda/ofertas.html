@@ -1,0 +1,90 @@
+{% extends "app_tienda/base.html" %}
+
+{% block title %}Ofertas - Librería Cancino{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="display-5">{{ titulo_pagina }}</h2>
+            <p class="lead text-muted">Aprovecha nuestros descuentos especiales en una selección de libros.</p>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for libro in page_obj %}
+            <div class="col">
+                <div class="card h-100 shadow-sm book-card">
+                    <a href="{% url 'app_tienda:detalle_libro' libro.slug %}" class="text-decoration-none text-dark">
+                        {% if libro.portada %}
+                            <img src="{{ libro.portada.url }}" class="card-img-top" alt="{{ libro.titulo }}">
+                        {% else %}
+                            <div class="portada-placeholder d-flex align-items-center justify-content-center">
+                                <i class="fas fa-book fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ libro.titulo|truncatechars:40 }}</h5>
+                            <p class="card-text text-muted">{{ libro.autor }}</p>
+                        </div>
+                    </a>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if libro.en_oferta %}
+                                    <span class="text-danger fw-bold fs-5">${{ libro.precio_oferta|floatformat:2 }}</span>
+                                    <span class="text-muted text-decoration-line-through ms-2">${{ libro.precio|floatformat:2 }}</span>
+                                {% else %}
+                                    <span class="fw-bold fs-5">${{ libro.precio|floatformat:2 }}</span>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'app_tienda:agregar_al_carrito' libro.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-cart-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>Por el momento, no tenemos libros en oferta. ¡Vuelve pronto!
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo; Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

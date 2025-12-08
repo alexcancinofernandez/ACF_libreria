@@ -1,0 +1,113 @@
+{% extends 'app_tienda/admin/admin_base.html' %}
+
+{% block title %}Gestionar Libros - Administración{% endblock %}
+
+{% block admin_content %}
+<h3><i class="fas fa-book me-2"></i>Gestionar Libros</h3>
+<p>Añade, edita y gestiona todos los libros de la tienda.</p>
+
+<div class="card">
+    <div class="card-body">
+        <!-- Controles: Búsqueda y Añadir Libro -->
+        <div class="d-flex justify-content-between mb-4 flex-wrap gap-2">
+            <form method="get" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Buscar por título, autor..." value="{{ request.GET.q }}">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                 <a href="{% url 'app_tienda:admin_libros' %}" class="btn btn-outline-secondary ms-2">Limpiar</a>
+            </form>
+            <a href="{% url 'app_tienda:admin_crear_libro' %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Añadir Nuevo Libro
+            </a>
+        </div>
+
+        <!-- Tabla de Libros -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Portada</th>
+                        <th>Título</th>
+                        <th>Autor</th>
+                        <th>Categoría</th>
+                        <th class="text-end">Precio</th>
+                        <th class="text-center">Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for libro in libros %}
+                        <tr>
+                            <td>
+                                {% if libro.portada %}
+                                <img src="{{ libro.portada.url }}" alt="{{ libro.titulo }}" class="img-thumbnail" style="width: 50px; height: 75px; object-fit: cover;">
+                                {% endif %}
+                            </td>
+                            <td>{{ libro.titulo }}</td>
+                            <td>{{ libro.autor }}</td>
+                            <td>{{ libro.categoria.nombre }}</td>
+                            <td class="text-end">${{ libro.precio|floatformat:2 }}</td>
+                            <td class="text-center">{{ libro.stock|default:"N/A" }}</td>
+                            <td>
+                                <a href="{% url 'app_tienda:admin_editar_libro' libro.slug %}" class="btn btn-sm btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Eliminar" 
+                                    data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" 
+                                    data-url="{% url 'app_tienda:admin_eliminar_libro' libro.slug %}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No se encontraron libros.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Paginación -->
+        {% include 'app_tienda/partials/paginacion.html' %}
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro de que deseas eliminar este libro? Esta acción no se puede deshacer.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form id="deleteForm" method="post" action="">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+    if (confirmDeleteModal) {
+        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const actionUrl = button.getAttribute('data-url');
+            const deleteForm = confirmDeleteModal.querySelector('#deleteForm');
+            deleteForm.setAttribute('action', actionUrl);
+        });
+    }
+});
+</script>
+{% endblock %}

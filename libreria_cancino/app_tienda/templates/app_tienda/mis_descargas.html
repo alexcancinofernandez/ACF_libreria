@@ -1,0 +1,50 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}Mis Descargas - Librería Cancino{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Menú lateral -->
+    <div class="col-md-3">
+        <div class="list-group">
+            <a href="{% url 'app_tienda:perfil' %}" class="list-group-item list-group-item-action">Mi Perfil</a>
+            <a href="{% url 'app_tienda:mis_pedidos' %}" class="list-group-item list-group-item-action">Mis Pedidos</a>
+            <a href="{% url 'app_tienda:mis_descargas' %}" class="list-group-item list-group-item-action active">Mis Descargas</a>
+            <a href="{% url 'app_tienda:wishlist' %}" class="list-group-item list-group-item-action">Wishlist</a>
+            <a href="{% url 'app_tienda:logout' %}" class="list-group-item list-group-item-action text-danger">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="col-md-9">
+        <h2>Mis Descargas</h2>
+        <p>Aquí encontrarás todos los libros que has comprado y que están disponibles para descargar.</p>
+
+        <div class="row">
+            {% for item in items_descargables %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <img src="{{ item.libro.portada.url }}" class="card-img-top" alt="{{ item.libro.titulo }}" style="height: 200px; object-fit: cover;">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">{{ item.libro.titulo }}</h5>
+                            <p class="card-text text-muted">{{ item.libro.autor }}</p>
+                            <div class="mt-auto">
+                                 <a href="{% url 'app_tienda:descargar_libro' item.id %}" class="btn btn-primary w-100">Descargar</a>
+                            </div>
+                        </div>
+                         <div class="card-footer text-center">
+                            <small class="text-muted">Comprado el {{ item.pedido.fecha_creacion|date:"d/m/Y" }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                 <div class="col">
+                    <div class="alert alert-info" role="alert">
+                       No tienes libros disponibles para descargar todavía. <a href="{% url 'app_tienda:catalogo' %}" class="alert-link">Explora nuestro catálogo</a> para empezar a comprar.
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends 'app_tienda/admin/admin_base.html' %}
+
+{% block title %}Reportes - Administración{% endblock %}
+
+{% block admin_content %}
+<h3><i class="fas fa-chart-line me-2"></i>Reportes</h3>
+<p>Visualiza el rendimiento y las estadísticas de la tienda.</p>
+
+<!-- Filtros de Fecha -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Fecha de Inicio</label>
+                <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">Fecha de Fin</label>
+                <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-4 align-self-end">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+                <a href="{% url 'app_tienda:admin_reportes' %}" class="btn btn-outline-secondary">Limpiar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Reporte de Ventas -->
+    <div class="col-lg-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-bar me-2"></i>Reporte de Ventas
+            </div>
+            <div class="card-body">
+                <!-- Aquí iría un gráfico de ventas (ej. con Chart.js) -->
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Libros Más Vendidos -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-book-reader me-2"></i>Libros Más Vendidos
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Libro</th>
+                            <th class="text-end">Unidades Vendidas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for libro in libros_mas_vendidos %}
+                        <tr>
+                            <td>{{ libro.titulo }}</td>
+                            <td class="text-end">{{ libro.unidades_vendidas }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center">No hay datos de ventas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clientes con Más Compras -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-tag me-2"></i>Clientes con Más Compras
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th class="text-end">Total Gastado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cliente in top_clientes %}
+                        <tr>
+                            <td>{{ cliente.usuario__first_name }} {{ cliente.usuario__last_name }}</td>
+                            <td class="text-end">${{ cliente.total_gastado|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                         <tr>
+                            <td colspan="2" class="text-center">No hay datos de clientes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js para los gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Datos para el gráfico de ventas (esto debería venir del contexto de la vista)
+    const salesData = JSON.parse('{{ sales_data_json|escapejs }}');
+    const labels = salesData.map(d => d.fecha);
+    const data = salesData.map(d => d.total);
+
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ventas Totales',
+                data: data,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                fill: true,
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return '$' + value;
+                        }
+                    }
+                }
+            },
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

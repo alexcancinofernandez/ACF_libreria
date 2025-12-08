@@ -1,0 +1,91 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}Catálogo de Libros - Librería Cancino{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Filtros -->
+    <div class="col-md-3">
+        <h4>Filtros</h4>
+        <form method="GET" action="{% url 'app_tienda:catalogo' %}">
+            <!-- Categorías -->
+            <div class="mb-3">
+                <label for="categoria" class="form-label">Categoría</label>
+                <select name="categoria" id="categoria" class="form-select">
+                    <option value="">Todas</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if filtros.categoria == categoria.id|stringformat:"s" %}selected{% endif %}>{{ categoria.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Precio -->
+            <div class="mb-3">
+                <label for="precio" class="form-label">Precio</label>
+                <div class="input-group">
+                    <input type="number" name="precio_min" class="form-control" placeholder="Min" value="{{ filtros.precio_min }}">
+                    <input type="number" name="precio_max" class="form-control" placeholder="Max" value="{{ filtros.precio_max }}">
+                </div>
+            </div>
+
+            <!-- Orden -->
+            <div class="mb-3">
+                <label for="orden" class="form-label">Ordenar por</label>
+                <select name="orden" id="orden" class="form-select">
+                    <option value="recientes" {% if filtros.orden == 'recientes' %}selected{% endif %}>Más recientes</option>
+                    <option value="precio_asc" {% if filtros.orden == 'precio_asc' %}selected{% endif %}>Precio: Menor a mayor</option>
+                    <option value="precio_desc" {% if filtros.orden == 'precio_desc' %}selected{% endif %}>Precio: Mayor a menor</option>
+                    <option value="titulo" {% if filtros.orden == 'titulo' %}selected{% endif %}>Título A-Z</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+        </form>
+    </div>
+
+    <!-- Listado de Libros -->
+    <div class="col-md-9">
+        <h2>Catálogo de Libros</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for libro in page_obj %}
+                {% include 'app_tienda/partials/libro_card.html' with libro=libro %}
+            {% empty %}
+                <p>No se encontraron libros con los filtros seleccionados.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación -->
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ filtros.urlencode }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{ i }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}&{{ filtros.urlencode }}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ filtros.urlencode }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}
