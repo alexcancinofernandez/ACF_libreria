@@ -1,0 +1,17 @@
+*.pyc
+*~
+__pycache__/
+.DS_Store
+
+# Entorno virtual
+.venv
+
+# Archivos de entorno
+.env
+
+# Base de datos
+db.sqlite3
+
+# Archivos estáticos y media
+staticfiles
+media
