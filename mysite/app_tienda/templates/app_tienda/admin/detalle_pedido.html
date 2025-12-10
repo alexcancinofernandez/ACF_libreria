@@ -1,0 +1,58 @@
+
+{% extends 'app_tienda/admin/admin_base.html' %}
+
+{% block title %}Detalle del Pedido {{ pedido.numero_pedido }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Detalle del Pedido <span class="text-primary">#{{ pedido.numero_pedido }}</span></h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Información del Cliente</div>
+            <div class="card-body">
+                <p><strong>Cliente:</strong> {{ pedido.usuario.get_full_name|default:pedido.usuario.username }}</p>
+                <p><strong>Email:</strong> {{ pedido.usuario.email }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Resumen del Pedido</div>
+            <div class="card-body">
+                <p><strong>Fecha:</strong> {{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                <p><strong>Estado:</strong> <span class="badge bg-info text-dark">{{ pedido.get_estado_display }}</span></p>
+                <p><strong>Total:</strong> ${{ pedido.total|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h3 class="mb-3">Artículos del Pedido</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th>Libro</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Precio Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detalle in pedido.detalles.all %}
+                <tr>
+                    <td>{{ detalle.libro.titulo }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>${{ detalle.precio_unitario|floatformat:2 }}</td>
+                    <td>${{ detalle.precio_total|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<a href="{% url 'app_tienda:admin_pedidos' %}" class="btn btn-secondary mt-3">Volver a Pedidos</a>
+{% endblock %}

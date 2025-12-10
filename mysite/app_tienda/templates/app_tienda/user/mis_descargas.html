@@ -21,7 +21,7 @@
         <p>Aquí encontrarás todos los libros que has comprado y que están disponibles para descargar.</p>
 
         <div class="row">
-            {% for item in items_descargables %}
+            {% for item in descargas %}
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
                         <img src="{{ item.libro.portada.url }}" class="card-img-top" alt="{{ item.libro.titulo }}" style="height: 200px; object-fit: cover;">
@@ -29,11 +29,11 @@
                             <h5 class="card-title">{{ item.libro.titulo }}</h5>
                             <p class="card-text text-muted">{{ item.libro.autor }}</p>
                             <div class="mt-auto">
-                                 <a href="{% url 'app_tienda:descargar_libro' item.id %}" class="btn btn-primary w-100">Descargar</a>
+                                 <a href="{% url 'app_tienda:descargar_libro' item.token %}" class="btn btn-primary w-100">Descargar</a>
                             </div>
                         </div>
                          <div class="card-footer text-center">
-                            <small class="text-muted">Comprado el {{ item.pedido.fecha_creacion|date:"d/m/Y" }}</small>
+                            <small class="text-muted">Comprado el {{ item.fecha_creacion|date:"d/m/Y" }}</small>
                         </div>
                     </div>
                 </div>

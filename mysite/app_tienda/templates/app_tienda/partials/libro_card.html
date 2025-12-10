@@ -1,0 +1,23 @@
+<div class="col">
+    <div class="card h-100">
+        <a href="{% url 'app_tienda:detalle_libro' libro.slug %}">
+            <img src="{% if libro.portada %}{{ libro.portada.url }}{% else %}/static/images/placeholder.png{% endif %}" class="card-img-top" alt="{{ libro.titulo }}">
+        </a>
+        <div class="card-body">
+            <h5 class="card-title">{{ libro.titulo }}</h5>
+            <p class="card-text">{{ libro.autor }}</p>
+            <p class="card-text fw-bold">
+                {% if libro.en_oferta and libro.precio_oferta is not None %}
+                    <del class="text-muted">${{ libro.precio|floatformat:2 }}</del>
+                    <span class="text-danger">${{ libro.precio_oferta|floatformat:2 }}</span>
+                {% else %}
+                    ${{ libro.precio|floatformat:2 }}
+                {% endif %}
+            </p>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'app_tienda:detalle_libro' libro.slug %}" class="btn btn-primary btn-sm">Ver Detalles</a>
+            <a href="{% url 'app_tienda:agregar_al_carrito' libro.id %}" class="btn btn-success btn-sm">Agregar al Carrito</a>
+        </div>
+    </div>
+</div>

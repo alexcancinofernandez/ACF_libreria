@@ -1,0 +1,41 @@
+
+{% extends 'app_tienda/admin/admin_base.html' %}
+
+{% block title %}Panel de Administración{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Panel de Administración</h1>
+    <p>Bienvenido al panel de administración, {{ user.username }}.</p>
+
+    <div class="row">
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Gestión de Libros</h5>
+                    <p class="card-text">Añadir, editar o eliminar libros del catálogo.</p>
+                    <a href="{% url 'app_tienda:admin_libros' %}" class="btn btn-primary">Ir a Libros</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Gestión de Pedidos</h5>
+                    <p class="card-text">Ver y gestionar los pedidos de los clientes.</p>
+                    <a href="{% url 'app_tienda:admin_pedidos' %}" class="btn btn-primary">Ir a Pedidos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Gestión de Usuarios</h5>
+                    <p class="card-text">Ver la lista de usuarios registrados.</p>
+                    <a href="{% url 'app_tienda:admin_usuarios' %}" class="btn btn-primary">Ir a Usuarios</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+
+{% extends 'app_tienda/admin/admin_base.html' %}
+
+{% block title %}Gestión de Libros{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Gestión de Libros</h1>
+    <a href="{% url 'app_tienda:admin_libro_crear' %}" class="btn btn-primary">Añadir Nuevo Libro</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Activo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for libro in libros %}
+            <tr>
+                <td>{{ libro.titulo }}</td>
+                <td>{{ libro.autor }}</td>
+                <td>{{ libro.categoria.nombre }}</td>
+                <td>${{ libro.precio|floatformat:2 }}</td>
+                <td>
+                    {% if libro.activo %}
+                        <span class="badge bg-success">Sí</span>
+                    {% else %}
+                        <span class="badge bg-danger">No</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'app_tienda:admin_libro_editar' slug=libro.slug %}" class="btn btn-sm btn-warning">Editar</a>
+                    <a href="{% url 'app_tienda:admin_eliminar_libro' slug=libro.slug %}" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center">No hay libros registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

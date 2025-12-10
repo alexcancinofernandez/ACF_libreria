@@ -1,19 +1,16 @@
 import os
 import sys
 from pathlib import Path
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Add the 'libreria_cancino' directory to the Python path
-sys.path.insert(0, str(BASE_DIR.parent / 'libreria_cancino'))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^=6-_k)oh!n9-fpcd1qd0rf(!8y2!!8cc*so1if(!*ydv@*_dc'
+SECRET_KEY = os.environ.get('SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -31,6 +28,10 @@ CSRF_COOKIE_SECURE = True
 
 
 AUTH_USER_MODEL = 'app_tienda.Usuario'
+LOGIN_URL = 'app_tienda:login'
+LOGIN_REDIRECT_URL = 'app_tienda:index'
+LOGOUT_REDIRECT_URL = 'app_tienda:index'
+
 
 # Application definition
 
@@ -52,7 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'app_tienda.middleware.admin_access_middleware.AdminAccessMiddleware',
+    'app_tienda.middleware.admin_access_middleware.AdminAccessMiddleware'
 ]
 
 ROOT_URLCONF = 'mysite.urls'

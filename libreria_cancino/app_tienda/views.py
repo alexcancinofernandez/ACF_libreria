@@ -2,14 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login, logout, authenticate
 from django.http import JsonResponse, HttpResponseForbidden, FileResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
-import stripe
 import json
 import uuid
 from datetime import timedelta
@@ -133,8 +131,6 @@ def logout_view(request):
     logout(request)
     return redirect('app_tienda:index')
 
-# ... (resto de las vistas sin cambios) ...
-
 @login_required
 def agregar_al_carrito(request, libro_id):
     libro = get_object_or_404(Libro, id=libro_id, activo=True)
@@ -146,7 +142,7 @@ def agregar_al_carrito(request, libro_id):
     if not created:
         item.cantidad += 1
         item.save()
-    return redirect('app_tienda:carrito') # CORREGIDO
+    return redirect('app_tienda:carrito')
 
 @login_required
 def pago_exitoso(request, numero_pedido):
@@ -157,8 +153,8 @@ def pago_exitoso(request, numero_pedido):
         pedido.estado = 'completado'
         pedido.save()
         
-        generar_entregas_digitales(pedido)
-        enviar_email_confirmacion(pedido)
+        # generar_entregas_digitales(pedido)
+        # enviar_email_confirmacion(pedido)
         CarritoItem.objects.filter(usuario=request.user).delete()
         request.session.pop('pedido_id', None)
     
@@ -170,7 +166,7 @@ def pago_exitoso(request, numero_pedido):
 def checkout(request):
     items = CarritoItem.objects.filter(usuario=request.user)
     if not items.exists():
-        return redirect('app_tienda:carrito') # CORREGIDO
+        return redirect('app_tienda:carrito')
     
     subtotal = sum(item.subtotal() for item in items)
     impuestos = subtotal * 0.16
@@ -195,16 +191,26 @@ def checkout(request):
         
         request.session['pedido_id'] = pedido.id
         
-        return redirect('app_tienda:proceso_pago') # CORREGIDO
+        return redirect('app_tienda:proceso_pago')
     
     context = {
         'items': items,
         'subtotal': subtotal,
         'impuestos': impuestos,
         'total': total,
-        'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
     }
     return render(request, 'app_tienda/checkout.html', context)
+
+@login_required
+def proceso_pago(request):
+    pedido_id = request.session.get('pedido_id')
+    if not pedido_id:
+        return redirect('app_tienda:checkout')
+
+    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
+
+    # Simulate a successful payment
+    return redirect(reverse('app_tienda:pago_exitoso', kwargs={'numero_pedido': pedido.numero_pedido}))
 
 @login_required
 def perfil(request):
@@ -215,7 +221,7 @@ def perfil(request):
         form = PerfilForm(request.POST, instance=usuario)
         if form.is_valid():
             form.save()
-            return redirect('app_tienda:perfil') # CORREGIDO
+            return redirect('app_tienda:perfil')
     else:
         form = PerfilForm(instance=usuario)
     
@@ -230,12 +236,105 @@ def perfil(request):
 def agregar_wishlist(request, libro_id):
     libro = get_object_or_404(Libro, id=libro_id)
     Wishlist.objects.get_or_create(usuario=request.user, libro=libro)
-    return redirect('app_tienda:wishlist') # CORREGIDO
+    return redirect('app_tienda:wishlist')
 
 @login_required
 def eliminar_wishlist(request, libro_id):
     Wishlist.objects.filter(usuario=request.user, libro_id=libro_id).delete()
-    return redirect('app_tienda:wishlist') # CORREGIDO
+    return redirect('app_tienda:wishlist')
 
-# ... (El resto de las vistas y funciones auxiliares permanecen igual) ...
+def contacto(request):
+    if request.method == 'POST':
+        return redirect('app_tienda:index')
+    return render(request, 'app_tienda/contacto.html')
 
+@login_required
+def carrito(request):
+    items = CarritoItem.objects.filter(usuario=request.user)
+    subtotal = sum(item.subtotal() for item in items)
+    context = {'items': items, 'subtotal': subtotal}
+    return render(request, 'app_tienda/carrito.html', context)
+
+@login_required
+def actualizar_carrito(request):
+    if request.method == 'POST':
+        item_id = request.POST.get('item_id')
+        cantidad = int(request.POST.get('cantidad'))
+        item = get_object_or_404(CarritoItem, id=item_id, usuario=request.user)
+        if cantidad > 0:
+            item.cantidad = cantidad
+            item.save()
+        else:
+            item.delete()
+    return redirect('app_tienda:carrito')
+
+@login_required
+def mis_pedidos(request):
+    pedidos = Pedido.objects.filter(usuario=request.user).order_by('-fecha_creacion')
+    context = {'pedidos': pedidos}
+    return render(request, 'app_tienda/mis_pedidos.html', context)
+
+@login_required
+def detalle_pedido(request, numero_pedido):
+    pedido = get_object_or_404(Pedido, numero_pedido=numero_pedido, usuario=request.user)
+    context = {'pedido': pedido}
+    return render(request, 'app_tienda/detalle_pedido.html', context)
+
+@login_required
+def mis_descargas(request):
+    descargas = EntregaDigital.objects.filter(usuario=request.user, pedido__estado__in=['pagado', 'completado']).order_by('-pedido__fecha_creacion')
+    context = {'descargas': descargas}
+    return render(request, 'app_tienda/mis_descargas.html', context)
+
+@login_required
+def descargar_libro(request, token):
+    entrega = get_object_or_404(EntregaDigital, token=token, usuario=request.user)
+    if not entrega.es_valido():
+        return HttpResponseForbidden("El enlace de descarga ha expirado o no es válido.")
+
+    return FileResponse(open(entrega.libro.archivo_pdf.path, 'rb'), as_attachment=True, filename=f'{entrega.libro.slug}.pdf')
+
+@login_required
+def wishlist(request):
+    items = Wishlist.objects.filter(usuario=request.user)
+    context = {'items': items}
+    return render(request, 'app_tienda/wishlist.html', context)
+
+def is_admin(user):
+    return user.is_authenticated and user.is_superuser
+
+@user_passes_test(is_admin)
+def admin_dashboard(request):
+    return render(request, 'app_tienda/admin/dashboard.html')
+
+@user_passes_test(is_admin)
+def admin_pedidos(request):
+    return render(request, 'app_tienda/admin/pedidos.html')
+
+@user_passes_test(is_admin)
+def admin_detalle_pedido(request, numero_pedido):
+    return render(request, 'app_tienda/admin/detalle_pedido.html')
+
+@user_passes_test(is_admin)
+def admin_libros(request):
+    return render(request, 'app_tienda/admin/libros.html')
+
+@user_passes_test(is_admin)
+def admin_crear_libro(request):
+    return render(request, 'app_tienda/admin/crear_libro.html')
+
+@user_passes_test(is_admin)
+def admin_editar_libro(request, slug):
+    return render(request, 'app_tienda/admin/editar_libro.html')
+
+@user_passes_test(is_admin)
+def admin_eliminar_libro(request, slug):
+    return render(request, 'app_tienda/admin/eliminar_libro.html')
+
+@user_passes_test(is_admin)
+def admin_usuarios(request):
+    return render(request, 'app_tienda/admin/usuarios.html')
+
+@user_passes_test(is_admin)
+def admin_reportes(request):
+    return render(request, 'app_tienda/admin/reportes.html')

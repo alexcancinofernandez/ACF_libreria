@@ -1,0 +1,64 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}Inicio - Librería Cancino{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="p-5 mb-4 bg-light rounded-3 text-center">
+    <div class="container-fluid py-5">
+        <h1 class="display-5 fw-bold">Bienvenido a la Librería Cancino</h1>
+        <p class="fs-4">Tu universo de conocimiento digital. Descubre, aprende y crece con nuestra colección de libros electrónicos.</p>
+        <a href="{% url 'app_tienda:catalogo' %}" class="btn btn-primary btn-lg">Explorar Catálogo</a>
+    </div>
+</div>
+
+<!-- Libros Destacados -->
+<section class="mb-5">
+    <h2 class="mb-4">Libros Destacados</h2>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for libro in libros_destacados %}
+            {% include 'app_tienda/partials/libro_card.html' with libro=libro %}
+        {% empty %}
+            <p>No hay libros destacados en este momento.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Libros Nuevos -->
+<section class="mb-5">
+    <h2 class="mb-4">Nuevas Adquisiciones</h2>
+     <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for libro in libros_nuevos %}
+            {% include 'app_tienda/partials/libro_card.html' with libro=libro %}
+        {% empty %}
+            <p>No hay libros nuevos en este momento.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Ofertas -->
+<section class="mb-5">
+    <h2 class="mb-4">En Oferta</h2>
+     <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for libro in libros_oferta %}
+            {% include 'app_tienda/partials/libro_card.html' with libro=libro %}
+        {% empty %}
+            <p>No hay libros en oferta en este momento.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Por Categoría -->
+<section>
+    <h2 class="mb-4">Explora por Categoría</h2>
+    <div class="list-group">
+        {% for categoria in categorias %}
+            <a href="{% url 'app_tienda:catalogo' %}?categoria={{ categoria.id }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                {{ categoria.nombre }}
+                <span class="badge bg-primary rounded-pill">{{ categoria.libros.count }}</span>
+            </a>
+        {% endfor %}
+    </div>
+</section>
+
+{% endblock %}

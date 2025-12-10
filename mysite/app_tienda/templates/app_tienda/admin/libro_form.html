@@ -1,0 +1,19 @@
+
+{% extends 'app_tienda/admin/admin_base.html' %}
+
+{% block title %}{% if libro %}Editar Libro{% else %}Añadir Libro{% endif %}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{% if libro %}Editar Libro{% else %}Añadir Nuevo Libro{% endif %}</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-8">
+            {{ form.as_p }}
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">{% if libro %}Actualizar Libro{% else %}Guardar Libro{% endif %}</button>
+    <a href="{% url 'app_tienda:admin_libros' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

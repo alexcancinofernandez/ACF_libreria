@@ -32,7 +32,7 @@
                                 <p class="card-text fw-bold fs-5">${{ item.libro.precio_descuento|default:item.libro.precio|floatformat:2 }}</p>
                                 <div class="mt-auto">
                                     <button class="btn btn-primary w-100 mb-2 btn-mover-al-carrito">Mover al Carrito</button>
-                                    <button class="btn btn-outline-danger w-100 btn-remover-wishlist">Eliminar</button>
+                                    <a href="{% url 'app_tienda:eliminar_wishlist' item.libro.id %}" class="btn btn-outline-danger w-100">Eliminar</a>
                                 </div>
                             </div>
                         </div>
@@ -72,27 +72,6 @@ $(document).ready(function() {
                     // alert('¡Libro movido al carrito!');
                 } else {
                     alert(data.error || 'Ocurrió un error.');
-                }
-            }
-        });
-    });
-
-    // Remover de la wishlist
-    $('.btn-remover-wishlist').click(function() {
-        const itemId = $(this).closest('.item-wishlist').data('item-id');
-        
-        $.ajax({
-            url: "{% url 'app_tienda:remover_de_wishlist' %}",
-            type: 'POST',
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            contentType: 'application/json',
-            data: JSON.stringify({ 'item_id': itemId }),
-            success: function(data) {
-                if (data.success) {
-                     $(`.item-wishlist[data-item-id="${itemId}"]`).closest('.col-md-4').remove();
                 }
             }
         });

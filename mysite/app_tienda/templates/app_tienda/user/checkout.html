@@ -1,0 +1,52 @@
+{% extends 'app_tienda/base.html' %}
+
+{% block title %}Checkout - Librería Cancino{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Checkout</h2>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Confirmar Pedido</h5>
+                <p>Haz clic en el botón de abajo para confirmar tu pedido.</p>
+
+                <form action="{% url 'app_tienda:checkout' %}" method="post">
+                    {% csrf_token %}
+                    <div class="d-grid">
+                         <button type="submit" class="btn btn-primary btn-lg">Confirmar Pedido</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Resumen de tu Pedido</h5>
+                 <ul class="list-group list-group-flush">
+                    {% for item in items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ item.libro.titulo }} (x{{ item.cantidad }})
+                            <span>${{ item.subtotal|floatformat:2 }}</span>
+                        </li>
+                    {% endfor %}
+                     <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Subtotal
+                        <span>${{ subtotal|floatformat:2 }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Impuestos (16%)
+                        <span>${{ impuestos|floatformat:2 }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center fw-bold fs-5">
+                        Total a Pagar
+                        <span>${{ total|floatformat:2 }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
